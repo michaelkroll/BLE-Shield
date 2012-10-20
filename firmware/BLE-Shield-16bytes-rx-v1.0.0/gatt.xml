@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+
+	<service uuid="1800">
+      <description>Generic Access Profile</description>
+ 
+	  <!-- Device Name -->                                        
+	  <!-- org.bluetooth.characteristic.gap.device_name -->
+      <characteristic uuid="2a00" id="xgatt_device_name">
+        <properties read="true" />
+        <value>01234567890123456789</value>
+      </characteristic>
+
+	  <!-- Appearance -->
+	  <!-- org.bluetooth.characteristic.gap.appearance -->
+      <characteristic uuid="2a01">
+        <properties read="true" const="true" />
+        <value>4142</value>
+      </characteristic>
+    </service>
+
+    <service uuid="180A">
+      <description>Device Information</description>
+
+	  <!-- Manufacturer Name String -->
+	  <!-- org.bluetooth.characteristic.manufacturer_name_string -->
+      <characteristic uuid="2a29">
+        <properties read="true" const="true" />
+        <value>Dr. Michael Kroll</value>
+		<description>Manufacturer Name String</description>
+      </characteristic>
+	  
+	  <!-- Model Number String -->
+	  <!-- org.bluetooth.characteristic.model_number_string -->
+	  <characteristic uuid="2a24">
+        <properties read="true" const="true" />
+        <value>BLE Shield 1.0.0</value>
+		<description>Model Number String</description>
+      </characteristic>
+
+	  <!-- Firmware Revision String -->
+	  <!-- org.bluetooth.characteristic.firmware_revision_string -->
+	  <characteristic uuid="2a26">
+        <properties read="true" const="true" />
+        <value>1.0.0</value>
+		<description>Firmware Revision String</description>
+      </characteristic>
+	  
+	  <!-- Hardware Revision String -->
+	  <!-- org.bluetooth.characteristic.hardware_revision_string -->
+	  <characteristic uuid="2a27">
+        <properties read="true" const="true" />
+        <value>1.0.0 REV-A</value>
+		<description>Hardware Revision String</description>
+      </characteristic>   
+    </service>
+	
+    <service uuid="F9266FD7-EF07-45D6-8EB6-BD74F13620F9" advertise="true">
+        <description>BLE Shield Service</description>
+       
+	   <characteristic uuid="38117F3C-28AB-4718-AB95-172B363F2AE0" id="xgatt_bdaddr">
+            <properties read="true" />
+            <value type="hex">001122334455</value>
+			<description>BD-Addr</description>
+        </characteristic>
+		
+		<characteristic uuid="4585C102-7784-40B4-88E1-3CB5C4FD37A3" id="xgatt_rx">
+            <properties read="true" notify="true"/>
+			<value length="16" value="hex" variable_length="false"></value>
+			<description>RX</description>
+        </characteristic>
+
+		<characteristic uuid="11846C20-6630-11E1-B86C-0800200C9A66" id="xgatt_rx_buf_count">
+            <properties read="true" />
+			<value length="1" value="hex" variable_length="false"></value>
+			<description>RX Buffer Count</description>
+        </characteristic>
+		
+		<characteristic uuid="DAF75440-6EBA-11E1-B0C4-0800200C9A66" id="xgatt_rx_buf_clear">
+            <properties write="true" read="true" />
+			<value length="1" value="hex" variable_length="false"></value>
+			<description>RX Buffer Clear</description>
+        </characteristic>
+		
+		<characteristic uuid="E788D73B-E793-4D9E-A608-2F2BAFC59A00" id="xgatt_tx">
+            <properties read="true" write="true"/>
+			<value length="17" value="hex" variable_length="true"></value>
+			<description>TX</description>
+        </characteristic>			
+    </service>
+
+</configuration>
