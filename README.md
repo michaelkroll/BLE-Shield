@@ -19,7 +19,13 @@ FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TOR
 ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 http://www.mkroll.mobi
+
 http://forum.mkroll.mobi
 
 This repository contains the eagle design files as well as the firmware source code
 which are needed modify and rebuild the firmware. The hexfiles are included as well.
+
+
+Notes:
+-The Eagle design files are created using Eagle v5.11.0
+-The Firmware v1.0.0 for the BLE112 module on the BLE-Shield was created and compiled for the Bluegiga BLE112 SDK v1.0.3
