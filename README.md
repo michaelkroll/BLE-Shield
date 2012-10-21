@@ -27,5 +27,7 @@ which are needed modify and rebuild the firmware. The hexfiles are included as w
 
 
 Notes:
+
 -The Eagle design files are created using Eagle v5.11.0
+
 -The Firmware v1.0.0 for the BLE112 module on the BLE-Shield was created and compiled for the Bluegiga BLE112 SDK v1.0.3
