@@ -24,10 +24,12 @@ http://forum.mkroll.mobi
 
 This repository contains the eagle design files as well as the firmware source code
 which are needed modify and rebuild the firmware. The hexfiles are included as well.
-
+Moreover I added the Arduino Sketches from my blog to this repository as well.
 
 Notes:
 
 -The Eagle design files are created using Eagle v5.11.0
 
 -The Firmware v1.0.0 for the BLE112 module on the BLE-Shield was created and compiled for the Bluegiga BLE112 SDK v1.0.3
+
+- The Arduino Sketched have been tested with Arduino 1.0.1
