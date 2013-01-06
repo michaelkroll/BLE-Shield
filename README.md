@@ -30,3 +30,5 @@ Moreover I added the Arduino Sketches from my blog to this repository as well.
 * The Eagle design files are created using Eagle v5.11.0
 * The Firmware v1.0.0 for the BLE112 module on the BLE-Shield was created and compiled for the Bluegiga BLE112 SDK v1.0.3
 * The Arduino Sketches have been tested with Arduino 1.0.1
+
+## BLE-Shield iPhone App
