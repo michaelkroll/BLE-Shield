@@ -441,7 +441,7 @@
     NSString *rawDataString = [self getRawHexString:notification.object];
     
     dataPacket.fromShield = NO;
-    dataPacket.stringData = [NSString stringWithFormat:@"Write RX-Buffer: %@", rawDataString];
+    dataPacket.stringData = [NSString stringWithFormat:@"Write TX-Buffer: %@", rawDataString];
     dataPacket.formattedDate = dateString;
     
     [[NSNotificationCenter defaultCenter] postNotificationName:NOTIFICATION_BLE_SHIELD_CHARACTERISTIC_VALUE_WRITTEN object:dataPacket];
