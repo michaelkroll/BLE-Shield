@@ -36,3 +36,22 @@ Finally the iPhone app is available as source code as well.
 * The Arduino Sketches have been tested with Arduino 1.0.1
 
 ## BLE-Shield iPhone App
+
+The BLE-Shield app provides access to the BLE-Shield Service and their characteristics. It's user interface is implemented like 
+a chat application. The chart partners are the BLE-Shield and the iPhone, illustrated by small icons.
+
+Once the BLE-Shield is connected, the application will automatically enable notifications on the RX characteristic. So whenever 
+the BLE-Shield's 16 byte buffer is filled completely, the buffer will be notified to the iPhone. 
+
+The app was developed using Xcode 4.5.2, iOS6 SDK and tested on an iPhone4S and iPhone5 running iOS6.0.1
+
+*Screenshots*
+
+<img src="http://www.mkroll.mobi/BLE-Shield-Files/iphone/BLE-Shield-iPhone1.PNG" />
+
+
+### Used third party components
+
+* BLEUtils taken from the TI SensorTag App, created by Ole Andreas Torvmark 
+* MBProgressHUD created by Matej Bukovinski https://github.com/matej/MBProgressHUD
+* PTSMessagingCell created by Ralph Grasser https://github.com/ppanopticon/PTSMessagingCell/
