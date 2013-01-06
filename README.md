@@ -1,5 +1,5 @@
-BLE-Shield
-==========
+## BLE-Shield
+
 
 Copyright (c) 2012 Dr. Michael Kroll
 
@@ -18,18 +18,15 @@ PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS 
 FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, 
 ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-http://www.mkroll.mobi
-
-http://forum.mkroll.mobi
+### Links
+* http://www.mkroll.mobi
+* http://forum.mkroll.mobi
 
 This repository contains the eagle design files as well as the firmware source code
 which are needed modify and rebuild the firmware. The hexfiles are included as well.
 Moreover I added the Arduino Sketches from my blog to this repository as well.
 
-Notes:
-
--The Eagle design files are created using Eagle v5.11.0
-
--The Firmware v1.0.0 for the BLE112 module on the BLE-Shield was created and compiled for the Bluegiga BLE112 SDK v1.0.3
-
--The Arduino Sketches have been tested with Arduino 1.0.1
+### Notes:
+* The Eagle design files are created using Eagle v5.11.0
+* The Firmware v1.0.0 for the BLE112 module on the BLE-Shield was created and compiled for the Bluegiga BLE112 SDK v1.0.3
+* The Arduino Sketches have been tested with Arduino 1.0.1
