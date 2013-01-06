@@ -47,7 +47,13 @@ The app was developed using Xcode 4.5.2, iOS6 SDK and tested on an iPhone4S and 
 
 *Screenshots*
 
-<img src="http://www.mkroll.mobi/BLE-Shield-Files/iphone/BLE-Shield-iPhone1.PNG" /> . <img src="http://www.mkroll.mobi/BLE-Shield-Files/iphone/BLE-Shield-iPhone2.PNG" />
+<img src="http://www.mkroll.mobi/BLE-Shield-Files/iphone/BLE-Shield-iPhone1.PNG" /> 
+. <img src="http://www.mkroll.mobi/BLE-Shield-Files/iphone/BLE-Shield-iPhone2.PNG" />
+. <img src="http://www.mkroll.mobi/BLE-Shield-Files/iphone/BLE-Shield-iPhone3.PNG" />
+. <img src="http://www.mkroll.mobi/BLE-Shield-Files/iphone/BLE-Shield-iPhone4.PNG" />
+. <img src="http://www.mkroll.mobi/BLE-Shield-Files/iphone/BLE-Shield-iPhone5.PNG" />
+. <img src="http://www.mkroll.mobi/BLE-Shield-Files/iphone/BLE-Shield-iPhone6.PNG" />
+. <img src="http://www.mkroll.mobi/BLE-Shield-Files/iphone/BLE-Shield-iPhone7.PNG" />
 
 
 ### Used third party components
