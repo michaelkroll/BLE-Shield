@@ -31,6 +31,9 @@ long interval = 1000;
 
 void setup()  
 {
+  // set led pin mode
+  pinMode(led, OUTPUT);
+
   // set the data rate for the Serial port
   Serial.begin(19200);
   randomSeed(analogRead(0));  
