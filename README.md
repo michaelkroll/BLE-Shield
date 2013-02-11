@@ -34,6 +34,11 @@ Finally the iPhone app is available as source code as well.
 * The Eagle design files are created using Eagle v5.11.0
 * The Firmware v1.0.0 for the BLE112 module on the BLE-Shield was created and compiled for the Bluegiga BLE112 SDK v1.0.3
 * The Arduino Sketches have been tested with Arduino 1.0.1
+* The .NETMF Sample has been tested with Microsoft Visual C# Express 2010, .NET Micro Framework SDK v4.2 and the Netduino SDK v4.2.2.0 (32-bit) running on a NetDuino2
+
+## .NETMF support 
+The latest addition to this repository is .NETMF support. With a little help of Thomas Amberg @tamberg I added a sample project for 
+the NetDuino2 board available at http://www.netduino.com which shows how use the BLE-Shield with this platform.  
 
 ## BLE-Shield iPhone App
 
