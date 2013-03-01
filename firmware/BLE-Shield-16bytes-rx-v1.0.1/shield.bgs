@@ -1,0 +1,158 @@
+# 
+# BLE-Shield firmware v1.0.1
+# 
+# Copyright (c) 2012 - 2013 Dr. Michael Kroll
+# 
+# http://www.mkroll.mobi
+# http://forum.mkroll.mobi
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this 
+# software and associated documentation files (the "Software"), to deal in the Software 
+# without restriction, including without limitation the rights to use, copy, modify, merge, 
+# publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons 
+# to whom the Software is furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all copies or 
+# substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
+# PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE 
+# FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, 
+# ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
+
+
+# used for the internal data buffer
+dim buf1(16)
+dim count
+dim buffer_pointer
+
+# used for the BD Addr characteristic
+dim bdaddr(6)
+dim shieldaddr(6)
+
+# used for the Device name characteristic
+dim devicename(20)
+
+#used to check if the ble shield is connected or not
+#data received over the UART is only stored if the shield is connected
+dim connected
+
+event system_boot(major, minor, patch, build, ll_version, protocol, hw)	
+	
+	#read the local devices public Bluetooth address
+	call system_address_get()(bdaddr(0:6))
+	
+	#set the connection flag to 0
+	connected = 0
+	
+	#create the device name buffer (ascii)
+	devicename(0:1)   = 66  # B 
+	devicename(1:1)   = 76  # L
+	devicename(2:1)   = 69  # E
+	devicename(3:1)   = 45  # -
+	devicename(4:1)   = 83  # S
+	devicename(5:1)   = 104 # h
+	devicename(6:1)   = 105 # i
+	devicename(7:1)   = 101 # e
+	devicename(8:1)   = 108 # l
+	devicename(9:1)   = 100 # d
+	devicename(10:1)  = 32  # 
+	devicename(11:1)  = 32  # 	
+	devicename(12:1)  = (bdaddr(3:1)/$10) + 48 + ((bdaddr(3:1)/$10)/10*7) 
+	devicename(13:1)  = (bdaddr(3:1)&$f)  + 48 + ((bdaddr(3:1)&$f )/10*7) 
+	devicename(14:1)  = (bdaddr(2:1)/$10) + 48 + ((bdaddr(2:1)/$10)/10*7) 
+	devicename(15:1)  = (bdaddr(2:1)&$f)  + 48 + ((bdaddr(2:1)&$f )/10*7) 
+	devicename(16:1)  = (bdaddr(1:1)/$10) + 48 + ((bdaddr(1:1)/$10)/10*7) 
+	devicename(17:1)  = (bdaddr(1:1)&$f)  + 48 + ((bdaddr(1:1)&$f )/10*7) 
+	devicename(18:1)  = (bdaddr(0:1)/$10) + 48 + ((bdaddr(0:1)/$10)/10*7) 
+	devicename(19:1)  = (bdaddr(0:1)&$f)  + 48 + ((bdaddr(0:1)&$f )/10*7)
+		
+	#write the device name characteristic	
+	call attributes_write(xgatt_device_name, 0, 20, devicename(0:20))
+	
+	#create the addr buffer (hex)
+	shieldaddr(0:1)  = bdaddr(5:1)
+	shieldaddr(1:1)  = bdaddr(4:1)
+	shieldaddr(2:1)  = bdaddr(3:1)
+	shieldaddr(3:1)  = bdaddr(2:1)
+	shieldaddr(4:1)  = bdaddr(1:1)
+	shieldaddr(5:1)  = bdaddr(0:1)
+	
+	#write the bd address characteristic
+	call attributes_write(xgatt_bdaddr, 0, 6, shieldaddr(0:6))
+	
+	# set port 1 to output
+	call hardware_io_port_config_direction(0, $f)
+	# set port 1 pin P1_0 to "0" which is used for the blue Connection LED
+	call hardware_io_port_write(0, $1, $0)
+	#set to advertising mode
+	call gap_set_mode(gap_general_discoverable,gap_undirected_connectable)
+	#set the buffer pointer to 0 
+	buffer_pointer=0
+	#set the received counter to 0
+	count=0
+	#set bondable mode
+	call sm_set_bondable_mode(1)	
+end
+
+event connection_disconnected(connection ,reason)	
+    #connection disconnected, continue advertising
+    call gap_set_mode(gap_general_discoverable,gap_undirected_connectable)
+	# set port 0 pin P0_0 to "0" 
+	call hardware_io_port_write(0, $1, $0)
+	
+	# reset the connection flag
+	connected = 0
+end
+
+event attributes_value(connection, reason, handle, offset, value_len, value_data)
+  
+  # Characteristic TX has been written
+  if handle=34 then 
+    call system_endpoint_tx(system_endpoint_uart1, value_len, value_data(0:value_len))
+  end if
+  
+  # Characteristic clear RX buffer has been written
+  if handle=31
+    buffer_pointer = 0
+	count = 0
+	call attributes_write(xgatt_rx_buf_count, 0, 1, 0)	
+  end if
+end
+
+event system_endpoint_rx(endpoint, data_len, data_data) 
+  
+  # module must be connectd to change the buffer according to the
+  # UART data received.
+  if connected=1
+    if endpoint=system_endpoint_uart1
+    	
+	  if (buffer_pointer+data_len)>16
+		  #clip length to maximum buffer size, discard data that does not fit
+		  memcpy(buf1(buffer_pointer),data_data(0),16-buffer_pointer)
+		  count = count + (16-buffer_pointer)
+	  else
+		  memcpy(buf1(buffer_pointer),data_data(0),data_len)
+		  buffer_pointer = buffer_pointer + data_len
+		  count = count + data_len
+	  end if
+	
+      call attributes_write(xgatt_rx_buf_count, 0, 1, count)
+  
+      if count=$10
+        call attributes_write(xgatt_rx, 0, 16, buf1(0:16))
+	    buffer_pointer = 0
+	    count = 0
+	    call attributes_write(xgatt_rx_buf_count, 0, 1, 0)
+      end if
+    end if
+  end if
+end
+
+event connection_status(connection, flags, address, address_type, conn_interval, timeout, latency, bonding)
+	# set port 0 pin P0_0 to "1" 
+	call hardware_io_port_write(0,$1,$1)
+	connected = 1
+end
