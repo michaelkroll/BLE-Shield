@@ -1,0 +1,31 @@
+<attributes>
+    <attribute read="true" handle="1" type="2800"/>
+    <attribute read="true" handle="2" type="2803"/>
+    <attribute read="true" handle="3" type="2a00"/>
+    <attribute read="true" handle="4" type="2803"/>
+    <attribute read="true" handle="5" type="2a01"/>
+    <attribute read="true" handle="6" type="2800"/>
+    <attribute read="true" handle="7" type="2803"/>
+    <attribute read="true" handle="8" type="2a29"/>
+    <attribute read="true" handle="9" type="2901"/>
+    <attribute read="true" handle="10" type="2803"/>
+    <attribute read="true" handle="11" type="2a24"/>
+    <attribute read="true" handle="12" type="2901"/>
+    <attribute read="true" handle="13" type="2803"/>
+    <attribute read="true" handle="14" type="2a26"/>
+    <attribute read="true" handle="15" type="2901"/>
+    <attribute read="true" handle="16" type="2803"/>
+    <attribute read="true" handle="17" type="2a27"/>
+    <attribute read="true" handle="18" type="2901"/>
+    <attribute read="true" handle="19" type="2800"/>
+    <attribute read="true" handle="20" type="2803"/>
+    <attribute read="true" handle="21" type="38117f3c28ab4718ab95172b363f2ae0"/>
+    <attribute read="true" handle="22" type="2901"/>
+    <attribute read="true" handle="23" type="2803"/>
+    <attribute read="true" handle="24" type="4585c102778440b488e13cb5c4fd37a3"/>
+    <attribute read="true" handle="25" type="2901"/>
+    <attribute write_no_response="true" read="true" handle="26" write="true" type="2902"/>
+    <attribute read="true" handle="27" type="2803"/>
+    <attribute read="true" handle="28" write="true" type="e788d73be7934d9ea6082f2bafc59a00"/>
+    <attribute read="true" handle="29" type="2901"/>
+</attributes>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<hardware>
+    <sleeposc enable="false" ppm="30" />
+	<txpower power="15" bias="5" />
+	<usart channel="1" alternate="1" baud="19200" endpoint="none" flow="false" />
+	<script enable="true" />
+	<port index="0" pull="down" />
+</hardware>

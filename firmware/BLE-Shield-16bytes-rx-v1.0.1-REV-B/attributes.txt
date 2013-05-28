@@ -1,0 +1,6 @@
+xgatt_device_name 3
+xgatt_bdaddr 21
+xgatt_rx 24
+xgatt_rx_buf_count 28
+xgatt_rx_buf_clear 31
+xgatt_tx 34
