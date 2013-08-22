@@ -57,7 +57,7 @@
     </service>
 	
     <service uuid="F9266FD7-EF07-45D6-8EB6-BD74F13620F9" advertise="true">
-        <description>BLE Shield Service v2.0.0</description>
+        <description>BLE Shield Service v1.0.0</description>
        
 	   <characteristic uuid="65C228DA-BAD1-4F41-B55F-3D177F4E2196" id="xgatt_bdaddr">
             <properties read="true" />
