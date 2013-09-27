@@ -177,6 +177,12 @@
     [self.connectedShield discoverServices:nil];
 }
 
+- (void)changeBaudRate:(BaudRate)rate {
+    NSData *data = [NSData dataWithBytes: &rate length: sizeof(rate)];
+    
+    [BLEUtility writeCharacteristic:self.connectedShield sUUID:kBLEShieldServiceUUIDString cUUID:kBLEShieldCharacteristicBaudRateUUIDString data:data];
+}
+
 /*
  *  @method centralManager:didFailToConnectPeripheral:error:
  *
@@ -302,6 +308,10 @@
     [[NSNotificationCenter defaultCenter] postNotificationName:NOTIFICATION_CONNECT_BLE_SHIELD_SUCCESS object:self.connectedShield];
     BtLog(@"enable notifications...");
     [BLEUtility setNotificationForCharacteristic:self.connectedShield sUUID:kBLEShieldServiceUUIDString cUUID:kBLEShieldCharacteristicRXUUIDString enable:YES];
+    
+    
+    // change to the default we used before
+    [self changeBaudRate: Baud_19200];
 }
 
 /*

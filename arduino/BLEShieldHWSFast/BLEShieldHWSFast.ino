@@ -32,7 +32,7 @@ long interval = 1000;
 void setup()  
 {
   // set the data rate for the Serial port
-  Serial.begin(19200);
+  Serial.begin(9600); //was 19200 for firmware v1.0.1
   randomSeed(analogRead(0));  
 }
 
