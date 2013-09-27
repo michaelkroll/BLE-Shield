@@ -178,8 +178,12 @@
 }
 
 - (void)changeBaudRate:(BaudRate)rate {
-    NSData *data = [NSData dataWithBytes: &rate length: sizeof(rate)];
+    Byte rateByte = (Byte)rate;
     
+    NSData *data = [NSData dataWithBytes: &rateByte length: sizeof(rateByte)];
+    
+    BtLog(@"ChangeBaudRate to %u = %u = %@", rate, rateByte, data);
+
     [BLEUtility writeCharacteristic:self.connectedShield sUUID:kBLEShieldServiceUUIDString cUUID:kBLEShieldCharacteristicBaudRateUUIDString data:data];
 }
 
