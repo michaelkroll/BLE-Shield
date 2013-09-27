@@ -311,6 +311,7 @@
     
     
     // change to the default we used before
+    // TODO: this doesn't actually work. is the characteristic UUID correct?
     [self changeBaudRate: Baud_19200];
 }
 

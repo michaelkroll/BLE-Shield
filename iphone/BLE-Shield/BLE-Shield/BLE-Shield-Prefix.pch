@@ -28,7 +28,7 @@ typedef enum BaudRateTypes {
     #define kBLEShieldCharacteristicTXUUIDString @"E788D73B-E793-4D9E-A608-2F2BAFC59A00"
 
 #else 
-    // sheild id actually hasn't changed, contrary to the blog post
+    // shield id actually hasn't changed, contrary to the blog post
     //#define kBLEShieldServiceUUIDString @"65C228DA-BAD1-4F41-B55F-3D177F4E2196"
     #define kBLEShieldServiceUUIDString @"F9266FD7-EF07-45D6-8EB6-BD74F13620F9"
     #define kBLEShieldCharacteristicRXUUIDString @"F897177B-AEE8-4767-8ECC-CC694FD5FCEE"
