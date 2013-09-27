@@ -32,8 +32,8 @@ long interval = 1000;
 void setup()  
 {
   // set the data rate for the SoftwareSerial port
-  bleShield.begin(19200);
-  Serial.begin(19200);
+  bleShield.begin(9600); //was 19200 for firmware v1.0.1
+  Serial.begin(9600); //was 19200 for firmware v1.0.1
   randomSeed(analogRead(0));  
 }
 
