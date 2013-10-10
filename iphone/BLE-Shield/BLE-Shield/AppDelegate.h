@@ -32,6 +32,8 @@
 - (void)notificationReadBLEShieldBufferSize:(NSNotification*)notification;
 - (void)notificationClearBLEShieldBufferSize:(NSNotification*)notification;
 
+- (void)changeBaudRate:(BaudRate)rate;
+
 - (NSString *)getRawHexString:(NSData*)rawData;
 
 @end

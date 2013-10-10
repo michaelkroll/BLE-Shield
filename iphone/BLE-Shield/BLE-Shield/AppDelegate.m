@@ -177,6 +177,16 @@
     [self.connectedShield discoverServices:nil];
 }
 
+- (void)changeBaudRate:(BaudRate)rate {
+    Byte rateByte = (Byte)rate;
+    
+    NSData *data = [NSData dataWithBytes: &rateByte length: sizeof(rateByte)];
+    
+    BtLog(@"ChangeBaudRate to %u = %u = %@", rate, rateByte, data);
+
+    [BLEUtility writeCharacteristic:self.connectedShield sUUID:kBLEShieldServiceUUIDString cUUID:kBLEShieldCharacteristicBaudRateUUIDString data:data];
+}
+
 /*
  *  @method centralManager:didFailToConnectPeripheral:error:
  *
@@ -302,6 +312,11 @@
     [[NSNotificationCenter defaultCenter] postNotificationName:NOTIFICATION_CONNECT_BLE_SHIELD_SUCCESS object:self.connectedShield];
     BtLog(@"enable notifications...");
     [BLEUtility setNotificationForCharacteristic:self.connectedShield sUUID:kBLEShieldServiceUUIDString cUUID:kBLEShieldCharacteristicRXUUIDString enable:YES];
+    
+    
+    // change to the default we used before
+    // TODO: this doesn't actually work. is the characteristic UUID correct?
+    [self changeBaudRate: Baud_19200];
 }
 
 /*
@@ -314,7 +329,7 @@
  *  @discussion				This method is invoked after a @link readValueForCharacteristic: @/link call, or upon receipt of a notification/indication.
  */
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error {
-    BtLog(@"");
+    //BtLog(@"");
 
     BLEShieldDataPacket *dataPacket = [[BLEShieldDataPacket alloc] init];
     
@@ -327,6 +342,8 @@
     dataPacket.characteristicUUID = characteristic.UUID;
     dataPacket.data = data;
     dataPacket.formattedDate = dateString;
+    
+    BtLog(@"data: %@", [[NSString alloc] initWithData : data encoding: NSASCIIStringEncoding]);
     
     [[NSNotificationCenter defaultCenter] postNotificationName:NOTIFICATION_BLE_SHIELD_CHARACTERISTIC_VALUE_READ object:dataPacket];
 }
@@ -354,7 +371,6 @@
  *  @discussion				This method returns the result of a @link setNotifyValue:forCharacteristic: @/link call.
  */
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateNotificationStateForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error {
-    BtLog(@"");
 }
 
 /*
@@ -451,7 +467,6 @@
 }
 
 - (void)notificationReadBLEShieldBuffer:(NSNotification*)notification {
-    BtLog(@"");
     
     BLEShieldDataPacket *dataPacket = [[BLEShieldDataPacket alloc] init];
     
@@ -462,6 +477,8 @@
     dataPacket.fromShield = NO;
     dataPacket.stringData = @"Read RX-Buffer";
     dataPacket.formattedDate = dateString;
+    
+    BtLog(@"New packet %@", dataPacket.stringData);
     
     [[NSNotificationCenter defaultCenter] postNotificationName:NOTIFICATION_BLE_SHIELD_CHARACTERISTIC_VALUE_READ object:dataPacket];
     

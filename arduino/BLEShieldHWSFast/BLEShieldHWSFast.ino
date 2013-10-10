@@ -29,6 +29,8 @@ int led = 13;
 long previousMillis = 0; 
 long interval = 1000; 
 
+int currentRhythmMultiplier = 1;
+
 void setup()  
 {
   // set the data rate for the Serial port
@@ -41,24 +43,35 @@ void loop() // run over and over
   unsigned long currentMillis = millis();
  
   if(currentMillis - previousMillis > interval) {
+    digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
+    
     previousMillis = currentMillis;   
     
-    int randNumber1 = random(255);
-    int randNumber2 = random(255);
-    int randNumber3 = random(255);
-    int randNumber4 = random(255);
+    for (int i = 0; i < 4; i++) {
+      int randNumber1 = '0' + i;//random(255);
+      int randNumber2 = '1';//random(255);
+      int randNumber3 = '2';//random(255);
+      int randNumber4 = '\n';//random(255);
+      
+      Serial.write(randNumber1);
+      Serial.write(randNumber2);
+      Serial.write(randNumber3);
+      Serial.write(randNumber4);    
+      Serial.flush();
+    }
+    int delayTime = 200 * currentRhythmMultiplier * 2;
+    delay(delayTime);               // wait for a second
+    // don't count the delay as our interval
+    previousMillis += delayTime;
     
-    Serial.write(randNumber1);
-    Serial.write(randNumber2);
-    Serial.write(randNumber3);
-    Serial.write(randNumber4);    
+    digitalWrite(led, LOW);    // turn the LED off by making the voltage LOW
+    
+    // lengthen the beat in measures of 3
+    currentRhythmMultiplier = (currentRhythmMultiplier % 3) + 1;
   }
   
   if (Serial.available()) {
     int data = Serial.read();
-    digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
-    delay(1000);               // wait for a second
-    digitalWrite(led, LOW);    // turn the LED off by making the voltage LOW
   }
 }
 
