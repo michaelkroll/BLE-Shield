@@ -1,5 +1,0 @@
-xgatt_device_name 3
-xgatt_bdaddr 21
-xgatt_rx 24
-xgatt_tx 28
-xgatt_baudrate 31
