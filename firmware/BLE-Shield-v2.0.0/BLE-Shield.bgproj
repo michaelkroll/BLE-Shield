@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project>
+    <gatt in="BLE-Shield_gatt.xml" />
+    <hardware in="BLE-Shield_hardware.xml" />    
+    <config in="BLE-Shield_config.xml" />  
+    
+    <script in="BLE-Shield.bgs" />
+    <image out="BLE-Shield-firmware-2.0.0-BLE-SDK1.2-b88.hex" />    
+</project>
