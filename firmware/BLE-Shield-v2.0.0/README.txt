@@ -11,5 +11,5 @@ BLE Host Wakeup 	P1_5
 BLE Modules Wakeup 	P1_6
 
 USB Port 	P1_0
-Boot to DFU P1_1
+Boot to DFU   P1_1
 --------------------------------------------------
