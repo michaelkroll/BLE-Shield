@@ -13,3 +13,5 @@ BLE Modules Wakeup P1_6
 USB Port           P1_0
 Boot to DFU        P1_1
 --------------------------------------------------
+
+The firmware is compiled against v 1.2.1 build 91
