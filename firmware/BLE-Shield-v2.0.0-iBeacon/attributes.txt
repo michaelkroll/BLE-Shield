@@ -1,0 +1,5 @@
+xgatt_device_name 3
+xgatt_bdaddr 21
+uuid_write 24
+major_write 27
+minor_write 30

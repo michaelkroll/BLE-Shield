@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project>
+    <gatt in="BLE-Shield-iBeacon_gatt.xml" />
+    <hardware in="BLE-Shield-iBeacon_hardware.xml" />    
+    <config in="BLE-Shield-iBeacon_config.xml" />  
+    
+    <script in="BLE-Shield-iBeacon.bgs" />
+    <image out="BLE-Shield-iBeacon-firmware-2.0.0-BLE-SDK1.2.1-b91.hex" />    
+</project>

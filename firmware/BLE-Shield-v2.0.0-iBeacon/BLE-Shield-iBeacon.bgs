@@ -1,0 +1,256 @@
+# BLE-Shield-iBeacon v2.0.0 firmware
+# using BLE112 SDK v1.2.1 build91
+# (c) by Dr. Michael Kroll 2014
+#
+# http://www.mkroll.mobi
+# http://forum.mkroll.mobi
+
+dim bdaddr(6)
+
+dim custom_adv_data(30)
+dim custom_sr_data(21)
+
+dim connected
+dim encrypted
+dim result
+
+dim len
+
+dim uuid_data(16)
+dim major_data(2)
+dim minor_data(2)
+
+event system_boot(major, minor, patch, build, ll_version, protocol, hw)	
+		
+	# enable interrupt on P1_1 rising edge
+    # (parameters are port=1, bitmask=0b00000010, edge=rising)
+    call hardware_io_port_config_irq(1, 2, 0)	
+	
+	# set all GPIO pins to input/high (pull), except P1_0 and P1_1 to output HIGH (no internal pull-ups)
+    # P1_0/1 will leak current if not externally pulled or set as outputs
+    #call hardware_io_port_config_direction(0, $0)
+	call hardware_io_port_config_direction(0, $f)
+    call hardware_io_port_write(0, $ff, $ff)
+    #call hardware_io_port_config_direction(1, $3)
+    #call hardware_io_port_write(1, $ff, $ff)
+    call hardware_io_port_config_direction(2, $0)
+    call hardware_io_port_write(2, $ff, $ff)
+	
+	# set port 0 pin P0_0 to "0" which is used for the green connectable LED
+	# set port 0 pin P0_0 to "0" = Turn off the blue LED
+	call hardware_io_port_write(0,$1,$0)				
+	
+	#read the local devices public Bluetooth address
+	call system_address_get()(bdaddr(0:6))
+	
+	# Flags
+	custom_adv_data( 0:1) = $02
+	custom_adv_data( 1:1) = $01
+	custom_adv_data( 2:1) = $06
+	
+	# Manufacturer data
+	custom_adv_data( 3:1) = $1a
+	custom_adv_data( 4:1) = $ff
+	
+	# Preamble - Apple Company Identifier - data type, 0x02 - data length, 0x15 = 21
+	custom_adv_data( 5:1) = $4c
+	custom_adv_data( 6:1) = $00
+	custom_adv_data( 7:1) = $02
+	custom_adv_data( 8:1) = $15
+	
+	# Custom UUID
+	# E2 C5 6D B5-DF FB-48 D2-B0 60-D0 F5 A7 10 96 E0 
+	# One of the UUIDs used in the AirLocate Sample of Apple.
+	#
+	# The UUID (16 bytes long)
+	#load major to advertisment data
+	call flash_ps_load($8014)(result, len, uuid_data(0:len))
+	if result = 0 
+		custom_adv_data( 9:1) = uuid_data(0:1) # 0
+		custom_adv_data(10:1) = uuid_data(1:1) # 1
+		custom_adv_data(11:1) = uuid_data(2:1) # 2
+		custom_adv_data(12:1) = uuid_data(3:1) # 3
+		custom_adv_data(13:1) = uuid_data(4:1) # 4
+		custom_adv_data(14:1) = uuid_data(5:1) # 5
+		custom_adv_data(15:1) = uuid_data(6:1) # 6
+		custom_adv_data(16:1) = uuid_data(7:1) # 7
+		custom_adv_data(17:1) = uuid_data(8:1) # 8
+		custom_adv_data(18:1) = uuid_data(9:1) # 9
+		custom_adv_data(19:1) = uuid_data(10:1) # 10
+		custom_adv_data(20:1) = uuid_data(11:1) # 11
+		custom_adv_data(21:1) = uuid_data(12:1) # 12
+		custom_adv_data(22:1) = uuid_data(13:1) # 13
+		custom_adv_data(23:1) = uuid_data(14:1) # 14
+		custom_adv_data(24:1) = uuid_data(15:1) # 15
+	else
+		custom_adv_data( 9:1) = $E2 # 0
+		custom_adv_data(10:1) = $C5 # 1
+		custom_adv_data(11:1) = $6D # 2
+		custom_adv_data(12:1) = $B5 # 3
+		custom_adv_data(13:1) = $DF # 4
+		custom_adv_data(14:1) = $FB # 5
+		custom_adv_data(15:1) = $48 # 6
+		custom_adv_data(16:1) = $D2 # 7
+		custom_adv_data(17:1) = $B0 # 8
+		custom_adv_data(18:1) = $60 # 9
+		custom_adv_data(19:1) = $D0 # 10
+		custom_adv_data(20:1) = $F5 # 11
+		custom_adv_data(21:1) = $A7 # 12
+		custom_adv_data(22:1) = $10 # 13
+		custom_adv_data(23:1) = $96 # 14
+		custom_adv_data(24:1) = $E0 # 15
+		
+		uuid_data( 0:1) = $E2 # 0
+		uuid_data( 1:1) = $C5 # 1
+		uuid_data( 2:1) = $6D # 2
+		uuid_data( 3:1) = $B5 # 3
+		uuid_data( 4:1) = $DF # 4
+		uuid_data( 5:1) = $FB # 5
+		uuid_data( 6:1) = $48 # 6
+		uuid_data( 7:1) = $D2 # 7
+		uuid_data( 8:1) = $B0 # 8
+		uuid_data( 9:1) = $60 # 9
+		uuid_data(10:1) = $D0 # 10
+		uuid_data(11:1) = $F5 # 11
+		uuid_data(12:1) = $A7 # 12
+		uuid_data(13:1) = $10 # 13
+		uuid_data(14:1) = $96 # 14
+		uuid_data(15:1) = $E0 # 15
+	end if
+	call attributes_write(uuid_write, 0, 16, uuid_data(0:16))
+	# ---
+
+	# Major (2 bytes long)
+	#load major to advertisment data
+	call flash_ps_load($8015)(result, len, major_data(0:len))
+	if result = 0
+		custom_adv_data(25:1) = major_data(0:1)
+		custom_adv_data(26:1) = major_data(1:1)
+	else
+		custom_adv_data(25:1) = $00
+		custom_adv_data(26:1) = $01
+		
+		major_data(0:1) = $00
+		major_data(1:1) = $01
+	end if
+	call attributes_write(major_write, 0, 2, major_data(0:2))
+	
+	# Minor (2 bytes long)
+	#load minor to advertisment data
+	call flash_ps_load($8016)(result, len, minor_data(0:len))
+	if result = 0
+		custom_adv_data(27:1) = minor_data(0:1)
+		custom_adv_data(28:1) = minor_data(1:1)
+	else
+		custom_adv_data(27:1) = $00
+		custom_adv_data(28:1) = $01
+		
+		minor_data(0:1) = $00
+		minor_data(1:1) = $01		
+	end if	
+	call attributes_write(minor_write, 0, 2, minor_data(0:2))
+
+	# Measured power at 1 meter (specified in 2's complement, so 0xC6 is -58)
+	custom_adv_data(29:1) = $c6
+	
+	# Local Name 
+	custom_sr_data( 0:1) = $14 # Length of this Data
+	custom_sr_data( 1:1) = $09 # AD Type = Complete Local Name
+	custom_sr_data( 2:1) = $42 # B
+	custom_sr_data( 3:1) = $4C # L
+	custom_sr_data( 4:1) = $45 # E	
+	custom_sr_data( 5:1) = $2D # -
+	custom_sr_data( 6:1) = $53 # S
+	custom_sr_data( 7:1) = $68 # h
+	custom_sr_data( 8:1) = $69 # i
+	custom_sr_data( 9:1) = $65 # e
+	custom_sr_data(10:1) = $6C # l
+	custom_sr_data(11:1) = $64 # d
+    custom_sr_data(12:1) = $20 # 
+	custom_sr_data(13:1) = (bdaddr(3:1)/$10) + 48 + ((bdaddr(3:1)/$10)/10*7) 
+	custom_sr_data(14:1) = (bdaddr(3:1)&$f)  + 48 + ((bdaddr(3:1)&$f )/10*7) 
+	custom_sr_data(15:1) = (bdaddr(2:1)/$10) + 48 + ((bdaddr(2:1)/$10)/10*7) 
+	custom_sr_data(16:1) = (bdaddr(2:1)&$f)  + 48 + ((bdaddr(2:1)&$f )/10*7) 
+	custom_sr_data(17:1) = (bdaddr(1:1)/$10) + 48 + ((bdaddr(1:1)/$10)/10*7) 
+	custom_sr_data(18:1) = (bdaddr(1:1)&$f)  + 48 + ((bdaddr(1:1)&$f )/10*7) 
+	custom_sr_data(19:1) = (bdaddr(0:1)/$10) + 48 + ((bdaddr(0:1)/$10)/10*7) 
+	custom_sr_data(20:1) = (bdaddr(0:1)&$f)  + 48 + ((bdaddr(0:1)&$f )/10*7)
+	
+	# write custom device name to local GATT attribute
+    call attributes_write(xgatt_device_name, 0, 19, custom_sr_data(2:19))
+	
+	# set advertisement interval to 2.0 second, all three channels
+    call gap_set_adv_parameters(800, 800, 3)
+	
+	# Set advertisement data
+	call gap_set_adv_data(0, 30, custom_adv_data(0:30))
+	
+	# Set Scan Record data
+	call gap_set_adv_data(1, 21, custom_sr_data(0:21))
+		
+	# Set advertisement interval to 100 to 500ms. Use all advertisement channels
+	# call gap_set_adv_parameters(20, 100, 7)
+	
+	call gap_set_mode(gap_user_data, gap_undirected_connectable)
+end
+
+event attributes_value(connection, reason, handle, offset, data_len, data)
+	  if handle = uuid_write then
+		call flash_ps_save($8014, data_len, data(0:data_len))  # psstore the uuid
+	  end if
+	  if handle = major_write then
+		  call flash_ps_save($8015, data_len, data(0:data_len))  # psstore the major
+	  end if
+	  if handle = minor_write then
+		  call flash_ps_save($8016, data_len, data(0:data_len))  # psstore the minor
+	end if
+end
+
+# catch new or updated connection
+event connection_status(connection, flags, address, address_type, conn_interval, timeout, latency, bonding)
+    # check for "new connection established" event
+    if (flags & $05) = $05 then
+        # update status vars
+        connected = 1
+    end if
+    
+    # check for "encrypted" status (e.g. connected + paired)
+    if (flags & $02) = $02 then
+        # update status vars
+        encrypted = 1
+    end if
+	
+	if connected = 1
+		# set port 0 pin P0_0 to "0" = Turn off the blue LED
+		call hardware_io_port_write(0, $1, $1)
+	end if
+end
+
+# catch disconnection
+event connection_disconnected(connection, reason)
+    # if disconnected, return to advertisement mode
+    call gap_set_mode(gap_general_discoverable, gap_undirected_connectable)
+
+    # update status vars
+    connected = 0
+    encrypted = 0
+	
+	# reset the module to advertise the new settings
+	call system_reset(0)
+end
+
+event hardware_soft_timer(handle)	
+	# if the cut connection timer was called.
+	if handle=1
+	end if
+end
+
+# catch button press for P1_1 (active HIGH configuration, hardware.xml pulls it low)
+event hardware_io_port_status(delta, port, irq, state)    
+	if port = 1 then
+        if (irq & 2) = 2 then
+			# P1_1 is HIGH and the source of this interrupt
+			call system_reset(1) # 1 indicated to reboot in DFU mode.				
+        end if
+    end if
+end

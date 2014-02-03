@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+
+	<service uuid="1800">
+      <description>Generic Access Profile</description>
+ 
+	  <!-- Device Name -->                                        
+	  <!-- org.bluetooth.characteristic.gap.device_name -->
+      <characteristic uuid="2a00" id="xgatt_device_name">
+        <properties read="true" />
+        <value>BLE-Shield-iBeacon</value>
+      </characteristic>
+
+	  <!-- Appearance -->
+	  <!-- org.bluetooth.characteristic.gap.appearance -->
+      <characteristic uuid="2a01">
+        <properties read="true" const="true" />
+        <!-- 128: Generic Computer, Generic category -->
+        <value type="hex">0080</value>
+      </characteristic>
+    </service>
+
+    <service uuid="180A">
+      <description>Device Information</description>
+
+	  <!-- Manufacturer Name String -->
+	  <!-- org.bluetooth.characteristic.manufacturer_name_string -->
+      <characteristic uuid="2a29">
+        <properties read="true" const="true" />
+        <value>Dr. Michael Kroll</value>
+		<description>Manufacturer Name String</description>
+      </characteristic>
+	  
+	  <!-- Model Number String -->
+	  <!-- org.bluetooth.characteristic.model_number_string -->
+	  <characteristic uuid="2a24">
+        <properties read="true" const="true" />
+        <value>BLE Shield 2.0.0</value>
+		<description>Model Number String</description>
+      </characteristic>
+
+	  <!-- Firmware Revision String -->
+	  <!-- org.bluetooth.characteristic.firmware_revision_string -->
+	  <characteristic uuid="2a26">
+        <properties read="true" const="true" />
+        <value>2.0.0</value>
+		<description>Firmware Revision String</description>
+      </characteristic>
+	  
+	  <!-- Hardware Revision String -->
+	  <!-- org.bluetooth.characteristic.hardware_revision_string -->
+	  <characteristic uuid="2a27">
+        <properties read="true" const="true" />
+        <value>REV-A1</value>
+		<description>Hardware Revision String</description>
+      </characteristic>   
+    </service>
+	
+	<service uuid="CBE86532-E735-456B-A7F9-658F41E4FD8B" advertise="false">
+		<description>BLE Shield iBeacon Service v2.0.0</description>
+		
+		<characteristic uuid="65C228DA-BAD1-4F41-B55F-3D177F4E2196" id="xgatt_bdaddr">
+            <properties read="true" />
+            <value type="hex">001122334455</value>
+			<description>BD-Addr</description>
+        </characteristic>
+		
+		<characteristic uuid="ADF34577-1D5B-42BC-A133-C19F0DD072CB" id="uuid_write">
+			<description>UUID</description>
+        	<properties read="true" write="true"/>
+        	<value type="hex" length="16" />
+		</characteristic>
+		
+     	<characteristic uuid="9643C6A7-0953-43CF-AE68-4AC947FE9C08" id="major_write">
+			<description>Major</description>
+        	<properties read="true" write="true"/>
+        	<value type="hex" length="2" />
+		</characteristic>
+		  
+		<characteristic uuid="4A95ED34-6AE6-47E0-B6C4-F71B0D1DCCA1" id="minor_write">
+			<description>Minor</description>
+        	<properties read="true" write="true"/>
+        	<value type="hex" length="2" />
+		</characteristic>
+    </service>
+	
+</configuration>
