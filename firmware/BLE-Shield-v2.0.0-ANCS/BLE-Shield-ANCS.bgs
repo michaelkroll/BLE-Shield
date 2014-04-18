@@ -1,0 +1,372 @@
+# BLE-Shield v2.0.0 ANCS firmware
+# using BLE112 SDK v1.2.2 build100
+# (c) by Dr. Michael Kroll 2014
+#
+# http://www.mkroll.mobi
+# http://forum.mkroll.mobi
+# 
+# modified based on an excellent example 
+# ANCS Demo
+# John Gallagher (https://github.com/slackhappy/ble112)
+#
+
+const STATE_STANDBY = 0
+const STATE_CONNECTING = 1
+const STATE_FINDING_SERVICES = 2
+const STATE_FINDING_ATTRIBUTES = 3
+const STATE_SUBSCRIBING_NS = 4
+const STATE_SUBSCRIBING_DS = 5
+const STATE_LISTENING = 6
+
+const FOUND_NONE = 0
+const FOUND_DS = 1
+const FOUND_NS = 2
+
+dim find_state
+dim device_state
+
+dim att_handle_ns_ccc
+dim att_handle_ns
+dim att_handle_ds_ccc
+dim att_handle_ds
+dim att_handle_cp
+dim att_handlesearch_start
+dim att_handlesearch_end
+
+dim ancs_connection
+
+dim uart_endpoint
+
+dim get_notification_attr_buf(30)
+dim indicate_buf(2)
+
+dim atoi_buf(15)
+dim atoi_buf_pos
+dim atoi_buf_len
+dim num
+
+dim adv_data(30)
+dim custom_sr_data(21)
+
+# used for the BD Addr characteristic
+dim bdaddr(6)
+dim shieldaddr(6)
+
+# set to 1 if device is connected
+dim connected
+# set to 1 if device connection is encrypted
+dim encrypted 
+
+# endpoint data in used for the watermarks
+dim in(20) 
+dim in_len
+dim emptyBuf(1)
+dim res
+
+
+
+# Boot event listener
+# 7905F431-B5CE-4E99-A40F-4B1E122D00D0 ANCS Service
+event system_boot(major, minor, patch, build, ll_version, protocol_version, hw)
+  
+    #read the local devices public Bluetooth address
+    call system_address_get()(bdaddr(0:6))
+  
+    # enable interrupt on P1_1 rising edge
+    # (parameters are port=1, bitmask=0b00000010, edge=rising)
+    call hardware_io_port_config_irq(1, 2, 0)
+  
+    # set port 1 to output
+    call hardware_io_port_config_direction(0, $f)
+	
+    # set port 0 pin P0_0 to "0" which is used for the blue Connection LED
+    call hardware_io_port_write(0, $1, $0)
+	
+    # set port 0 pin P0_1 to "0" which is used for the interrupt pin
+    call hardware_io_port_write(0, $2, $0)  
+  
+  	# diable the watermarks
+	call system_endpoint_set_watermarks(system_endpoint_uart1, 0, 0)
+  
+    device_state = STATE_STANDBY
+    atoi_buf_len = 15
+    att_handle_ns_ccc = 0
+    att_handle_ds_ccc = 0
+    att_handle_ds = 0
+    att_handle_ns = 0
+  
+    # set the value for the attribute find state
+    find_state = FOUND_NONE
+
+    adv_data( 0:1) = $02 # ad field length = 2 bytes
+    adv_data( 1:1) = gap_ad_type_flags   # ad field type = 0x01 (Flags)
+    adv_data( 2:1) = $02 # 3.C.18.1: 00000110b  generaldisc, no BR/EDR
+
+    adv_data( 3:1) = $04 # ad field length = 04
+    adv_data( 4:1) = $09 # Complete local name
+    adv_data( 5:1) = $4C # L
+    adv_data( 6:1) = $45 # E
+    adv_data( 7:1) = $44 # D
+
+    adv_data( 8:1) = $11 # ad field 17
+    adv_data( 9:1) = $15 # Service Solicitation, 128-bit UUIDs
+    adv_data(25:1) = $79
+    adv_data(24:1) = $05
+    adv_data(23:1) = $F4
+    adv_data(22:1) = $31
+    adv_data(21:1) = $B5
+    adv_data(20:1) = $CE
+    adv_data(19:1) = $4E
+    adv_data(18:1) = $99
+    adv_data(17:1) = $A4
+    adv_data(16:1) = $0F
+    adv_data(15:1) = $4B
+    adv_data(14:1) = $1E
+    adv_data(13:1) = $12
+    adv_data(12:1) = $2D
+    adv_data(11:1) = $00
+    adv_data(10:1) = $D0
+ 
+    # Local Name 
+    custom_sr_data( 0:1) = $14 # Length of this Data
+    custom_sr_data( 1:1) = $09 # AD Type = Complete Local Name
+    custom_sr_data( 2:1) = $42 # B
+    custom_sr_data( 3:1) = $4C # L
+    custom_sr_data( 4:1) = $45 # E	
+    custom_sr_data( 5:1) = $2D # -
+    custom_sr_data( 6:1) = $53 # S
+    custom_sr_data( 7:1) = $68 # h
+    custom_sr_data( 8:1) = $69 # i
+    custom_sr_data( 9:1) = $65 # e
+    custom_sr_data(10:1) = $6C # l
+    custom_sr_data(11:1) = $64 # d
+    custom_sr_data(12:1) = $20 # 
+    custom_sr_data(13:1) = (bdaddr(3:1)/$10) + 48 + ((bdaddr(3:1)/$10)/10*7) 
+    custom_sr_data(14:1) = (bdaddr(3:1)&$f)  + 48 + ((bdaddr(3:1)&$f )/10*7) 
+    custom_sr_data(15:1) = (bdaddr(2:1)/$10) + 48 + ((bdaddr(2:1)/$10)/10*7) 
+    custom_sr_data(16:1) = (bdaddr(2:1)&$f)  + 48 + ((bdaddr(2:1)&$f )/10*7) 
+    custom_sr_data(17:1) = (bdaddr(1:1)/$10) + 48 + ((bdaddr(1:1)/$10)/10*7) 
+    custom_sr_data(18:1) = (bdaddr(1:1)&$f)  + 48 + ((bdaddr(1:1)&$f )/10*7) 
+    custom_sr_data(19:1) = (bdaddr(0:1)/$10) + 48 + ((bdaddr(0:1)/$10)/10*7) 
+    custom_sr_data(20:1) = (bdaddr(0:1)&$f)  + 48 + ((bdaddr(0:1)&$f )/10*7)
+ 
+    # System started, enable advertising and allow connections
+    # set advertisement interval to 1s-2s, use all advertisement channels
+    # (note min/max parameters are in units of 625 uSec)
+    call gap_set_adv_parameters(20, 32, 7)
+	# Set Adv Record data
+    call gap_set_adv_data(0, 26, adv_data(0:26))
+    # Set Scan Record data
+    call gap_set_adv_data(1, 21, custom_sr_data(0:21))
+    call gap_set_mode(gap_user_data, gap_undirected_connectable)
+
+    # TODO: consider bonding for faster reconnect
+    uart_endpoint = system_endpoint_uart1
+end
+
+# Connection event listener
+event connection_status(connection, flags, address, address_type, conn_interval, timeout, latency, bonding)
+    ancs_connection = connection
+	
+    if connected = 0 then
+	    # set port 0 pin P0_0 to "1" 
+	    call hardware_io_port_write(0,$1,$1)
+	
+	    # set port 0 pin P0_1 to "1" 
+	    call hardware_io_port_write(0,$2,$2)
+		
+		#enable the watermarks for RX here
+		call system_endpoint_set_watermarks(uart_endpoint, 1, $ff) # set RX watermark
+        connected = 1	
+    else 
+        encrypted = 1
+    end if
+	
+    # start encryption
+    if flags != $03 then
+        call sm_encrypt_start(ancs_connection, 0)
+    else
+        # kick off a discovery of ANCS
+        device_state = STATE_FINDING_SERVICES
+	    call attclient_read_by_group_type(connection, $0001, $ffff, 2, "\x00\x28")
+    end if	  
+end
+
+event attclient_group_found(connection, start_handle, end_handle, uuid_len, uuid_data)
+    # TODO, use memcmp with the adv_data(10:16), or something smarter
+    if uuid_len = 16 && memcmp(uuid_data(0), adv_data(10), 16) then
+        # save the handle range for attribute enumeration
+        att_handlesearch_start = start_handle
+        att_handlesearch_end = end_handle
+    end if  
+    # Actual uuid_data
+    #D0 00 2D 12 1E 4B 0F A4 99 4E CE B5 31 F4 05 79
+end
+
+event connection_disconnected(handle, result)
+    #set the flag to 0, since the connection was terminated.
+	connected = 0
+	encrypted = 0
+	ancs_connection = 0
+	# set port 0 pin P0_0 to "0" = Turn off the blue LED
+	call hardware_io_port_write(0, $1, $0)
+
+	# set port 0 pin P0_1 to "0" = Change the interrupt pin.
+	call hardware_io_port_write(0, $2, $0)
+    call gap_set_mode(gap_user_data, gap_undirected_connectable)
+	
+	# disable watermarks
+	call system_endpoint_set_watermarks(system_endpoint_uart1, 0, 0) 
+end
+
+# Callback for finding characteristics of a service
+event attclient_find_information_found(connection, chrhandle, uuid_len, uuid_data)
+    if uuid_len = 16 then
+        # TODO, memcmp with actual GUID values instead of checking first 2 bytes
+        if uuid_data(0:1) = $fb && uuid_data(1:1) = $7b then
+            find_state = FOUND_DS
+            att_handle_ds = chrhandle
+        end if
+        if uuid_data(0:1) = $bd && uuid_data(1:1) = $1d then
+            find_state = FOUND_NS
+            att_handle_ns = chrhandle
+        end if
+        if uuid_data(0:1) = $d9 && uuid_data(1:1) = $d9 then
+            find_state = FOUND_NONE
+            att_handle_cp = chrhandle
+        end if
+    end if
+	if uuid_len = 2 then
+        # Look for the Client Configuration Characteristic
+        if uuid_data(0:1) = $02 && uuid_data(1:1) = $29 then
+            if find_state = FOUND_DS then
+                att_handle_ds_ccc = chrhandle
+                find_state = FOUND_NONE
+            end if
+            if find_state = FOUND_NS then
+                att_handle_ns_ccc = chrhandle
+                find_state = FOUND_NONE
+            end if
+        end if
+    end if
+end
+
+event attclient_attribute_value(connection, atthandle, type, value_len, value_data)
+
+    if device_state != STATE_LISTENING then
+        # reboot the device state machine
+        device_state = STATE_FINDING_SERVICES
+        call attclient_read_by_group_type(connection, $0001, $ffff, 2, "\x00\x28")
+    else
+        if atthandle = att_handle_ns then
+			call system_endpoint_tx(uart_endpoint, value_len, value_data(0:value_len))
+		end if
+	
+		if atthandle = att_handle_ds then
+			call system_endpoint_tx(uart_endpoint, value_len, value_data(0:value_len))
+		end if
+	end if
+end
+
+event attclient_procedure_completed(connection, result, chrhandle)
+	#call system_endpoint_tx(3, 30, "AttClient procedure completed ")
+	num = result
+		#call system_endpoint_tx(3, 4, "OK\r\n")
+	if result = 0 then
+		
+	else
+		#call system_endpoint_tx(3, in_len, in(0:in_len))	
+		call system_endpoint_tx(uart_endpoint, 6, "ERROR ")
+				
+		#atoi_buf_pos = atoi_buf_len
+		#while atoi_buf_pos > 0
+		#	atoi_buf_pos = atoi_buf_pos - 1
+		#	atoi_buf(atoi_buf_pos:1) = 48 + (num - ((num / 10) * 10))
+		#	num = num / 10
+		#end while
+		#call system_endpoint_tx(uart_endpoint, atoi_buf_len, atoi_buf(0:atoi_buf_len))		
+		
+		call system_endpoint_tx(uart_endpoint, 2, "\r\n")
+	end if
+  
+	# if result is $0405 (1029) - insufficient authentication
+
+	# finished some attclient operation, so figure out what happened
+	# list each state last to first, since there is no else if
+	if device_state = STATE_SUBSCRIBING_NS then
+		if result = 0 then
+			device_state = STATE_LISTENING
+		end if
+	end if
+	
+	if device_state = STATE_SUBSCRIBING_DS then
+		if att_handle_ns_ccc > 0 then
+			# change state
+			device_state = STATE_SUBSCRIBING_NS
+			indicate_buf(0:1) = $01
+			indicate_buf(1:1) = $00
+			call attclient_attribute_write(0, att_handle_ns_ccc, 2, indicate_buf(0:2))
+		else
+			call system_endpoint_tx(uart_endpoint, 29, "att_handle_ns_ccc not found\r\n")
+		end if
+	end if
+	
+	if device_state = STATE_FINDING_ATTRIBUTES then
+		if att_handle_ds_ccc > 0 then
+			# change state
+			device_state = STATE_SUBSCRIBING_DS
+			indicate_buf(0:1) = $01
+			indicate_buf(1:1) = $00
+			call attclient_attribute_write(0, att_handle_ds_ccc, 2, indicate_buf(0:2))
+		else
+			call system_endpoint_tx(uart_endpoint, 29, "att_handle_ds_ccc not found\r\n")
+		end if
+	end if
+  
+	if device_state = STATE_FINDING_SERVICES then
+		if att_handlesearch_end > 0 then
+			# change state
+			device_state = STATE_FINDING_ATTRIBUTES
+			# found the ANCS service, now get the attributes: CP, DS, NS, DS CCC, NS CCC
+			call attclient_find_information(0, att_handlesearch_start, att_handlesearch_end)
+		else
+			# couldn't find the ANCS service
+			call system_endpoint_tx(uart_endpoint, 24, "Couldn't find service!\r\n")
+		end if
+	end if
+end
+
+event system_endpoint_watermark_rx(endpoint, size)
+
+    if endpoint = uart_endpoint then
+      in_len = size
+      if in_len > 20 then
+        in_len = 20
+      end if
+	      
+      # disable RX watermark (recommended in 'cable replacement' application note from bluegiga	
+	  call system_endpoint_set_watermarks(uart_endpoint, 0, $ff) 
+	  #read from UART
+      call system_endpoint_rx(uart_endpoint, in_len)(res, in_len, in(0:in_len)) 
+	  
+	  #get the title for this notification from the control point
+	  #call attclient_attribute_write(ancs_connection, att_handle_cp, in_len, in(0:in_len))
+	  
+	  # set RX watermark (1 byte treshhold)
+	  call system_endpoint_set_watermarks(uart_endpoint, 1, $ff) 
+	  	  
+	  # send get notification attributes from NP
+	  call attclient_attribute_write(ancs_connection, att_handle_cp, in_len, in(0:in_len))	  
+	end if
+end
+
+# catch button press for P1_1 (active HIGH configuration, hardware.xml pulls it low)
+event hardware_io_port_status(delta, port, irq, state)
+    if port = 1 then
+        if (irq & 2) = 2 then
+            # P1_1 is HIGH and the source of this interrupt
+			# lets reset the module and boot in DFU mode.
+            call system_reset(1) # 1 indicated to boot in DFU mode.
+        end if
+    end if
+end

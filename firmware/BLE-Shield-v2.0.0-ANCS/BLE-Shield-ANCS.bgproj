@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project>
+    <gatt in="BLE-Shield-ANCS_gatt.xml" />
+    <hardware in="BLE-Shield-ANCS_hardware.xml" />    
+    <config in="BLE-Shield-ANCS_config.xml" />  
+
+    <script in="BLE-Shield-ANCS.bgs" />
+    <image out="BLE-Shield-ANCS-firmware-2.0.0-BLE-SDK1.2.2-b100.hex" />    
+</project>

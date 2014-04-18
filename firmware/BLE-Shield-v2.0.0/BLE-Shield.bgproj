@@ -5,5 +5,5 @@
     <config in="BLE-Shield_config.xml" />  
     
     <script in="BLE-Shield.bgs" />
-    <image out="BLE-Shield-firmware-2.0.0-BLE-SDK1.2.1-b91.hex" />    
+    <image out="BLE-Shield-firmware-2.0.0-BLE-SDK1.2.2-b100.hex" />    
 </project>

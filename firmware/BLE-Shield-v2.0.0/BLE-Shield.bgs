@@ -1,6 +1,6 @@
 # BLE-Shield v2.0.0 firmware
-# using BLE112 SDK v1.1.1 build71
-# (c) by Dr. Michael Kroll 2013
+# using BLE112 SDK v1.2.2 build100
+# (c) by Dr. Michael Kroll 2013 - 2014
 #
 # http://www.mkroll.mobi
 # http://forum.mkroll.mobi
@@ -10,7 +10,7 @@ dim bdaddr(6)
 dim shieldaddr(6)
 
 # used for the Device name characteristic
-dim devicename(20)
+dim devicename(19)
 
 # endpoint data in used for the watermarks
 dim in(20) 
@@ -42,29 +42,28 @@ event system_boot(major, minor, patch, build, ll_version, protocol, hw)
 	call system_address_get()(bdaddr(0:6))
 	
 	#create the device name buffer (ascii)
-	devicename(0:1)   = 66  # B 
-	devicename(1:1)   = 76  # L
-	devicename(2:1)   = 69  # E
-	devicename(3:1)   = 45  # -
-	devicename(4:1)   = 83  # S
-	devicename(5:1)   = 104 # h
-	devicename(6:1)   = 105 # i
-	devicename(7:1)   = 101 # e
-	devicename(8:1)   = 108 # l
-	devicename(9:1)   = 100 # d
-	devicename(10:1)  = 32  #
-	devicename(11:1)  = 32  #	
-	devicename(12:1)  = (bdaddr(3:1)/$10) + 48 + ((bdaddr(3:1)/$10)/10*7) 
-	devicename(13:1)  = (bdaddr(3:1)&$f)  + 48 + ((bdaddr(3:1)&$f )/10*7) 
-	devicename(14:1)  = (bdaddr(2:1)/$10) + 48 + ((bdaddr(2:1)/$10)/10*7) 
-	devicename(15:1)  = (bdaddr(2:1)&$f)  + 48 + ((bdaddr(2:1)&$f )/10*7) 
-	devicename(16:1)  = (bdaddr(1:1)/$10) + 48 + ((bdaddr(1:1)/$10)/10*7) 
-	devicename(17:1)  = (bdaddr(1:1)&$f)  + 48 + ((bdaddr(1:1)&$f )/10*7) 
-	devicename(18:1)  = (bdaddr(0:1)/$10) + 48 + ((bdaddr(0:1)/$10)/10*7) 
-	devicename(19:1)  = (bdaddr(0:1)&$f)  + 48 + ((bdaddr(0:1)&$f )/10*7)
+	devicename( 0:1) = 66  # B 
+	devicename( 1:1) = 76  # L
+	devicename( 2:1) = 69  # E
+	devicename( 3:1) = 45  # -
+    devicename( 4:1) = $53 # S
+    devicename( 5:1) = $68 # h
+    devicename( 6:1) = $69 # i
+    devicename( 7:1) = $65 # e
+    devicename( 8:1) = $6C # l
+    devicename( 9:1) = $64 # d
+	devicename(10:1) = 32  #	
+	devicename(11:1) = (bdaddr(3:1)/$10) + 48 + ((bdaddr(3:1)/$10)/10*7) 
+	devicename(12:1) = (bdaddr(3:1)&$f)  + 48 + ((bdaddr(3:1)&$f )/10*7) 
+	devicename(13:1) = (bdaddr(2:1)/$10) + 48 + ((bdaddr(2:1)/$10)/10*7) 
+	devicename(14:1) = (bdaddr(2:1)&$f)  + 48 + ((bdaddr(2:1)&$f )/10*7) 
+	devicename(15:1) = (bdaddr(1:1)/$10) + 48 + ((bdaddr(1:1)/$10)/10*7) 
+	devicename(16:1) = (bdaddr(1:1)&$f)  + 48 + ((bdaddr(1:1)&$f )/10*7) 
+	devicename(17:1) = (bdaddr(0:1)/$10) + 48 + ((bdaddr(0:1)/$10)/10*7) 
+	devicename(18:1) = (bdaddr(0:1)&$f)  + 48 + ((bdaddr(0:1)&$f )/10*7)
 		
 	#write the device name characteristic	
-	call attributes_write(xgatt_device_name, 0, 20, devicename(0:20))
+	call attributes_write(xgatt_device_name, 0, 19, devicename(0:19))
 	
 	#create the addr buffer (hex)
 	shieldaddr(0:1)  = bdaddr(5:1)

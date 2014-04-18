@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+
+	<service uuid="1800">
+      <description>Generic Access Profile</description>
+ 
+	  <!-- Device Name -->                                        
+	  <!-- org.bluetooth.characteristic.gap.device_name -->
+      <characteristic uuid="2a00" id="xgatt_device_name">
+        <properties read="true" />
+        <value>01234567890123456789</value>
+      </characteristic>
+
+	  <!-- Appearance -->
+	  <!-- org.bluetooth.characteristic.gap.appearance -->
+      <characteristic uuid="2a01">
+        <properties read="true" const="true" />
+        <!-- 128: Generic Computer, Generic category -->
+        <value type="hex">0080</value>
+      </characteristic>
+    </service>
+
+    <service uuid="180A">
+      <description>Device Information</description>
+
+	  <!-- Manufacturer Name String -->
+	  <!-- org.bluetooth.characteristic.manufacturer_name_string -->
+      <characteristic uuid="2a29">
+        <properties read="true" const="true" />
+        <value>Dr. Michael Kroll</value>
+		<description>Manufacturer Name String</description>
+      </characteristic>
+	  
+	  <!-- Model Number String -->
+	  <!-- org.bluetooth.characteristic.model_number_string -->
+	  <characteristic uuid="2a24">
+        <properties read="true" const="true" />
+        <value>BLE Shield 2.0.0</value>
+		<description>Model Number String</description>
+      </characteristic>
+
+	  <!-- Firmware Revision String -->
+	  <!-- org.bluetooth.characteristic.firmware_revision_string -->
+	  <characteristic uuid="2a26">
+        <properties read="true" const="true" />
+        <value>2.0.0 ANCS</value>
+		<description>Firmware Revision String</description>
+      </characteristic>
+	  
+	  <!-- Hardware Revision String -->
+	  <!-- org.bluetooth.characteristic.hardware_revision_string -->
+	  <characteristic uuid="2a27">
+        <properties read="true" const="true" />
+        <value>REV-A1</value>
+		<description>Hardware Revision String</description>
+      </characteristic>   
+    </service>
+
+</configuration>

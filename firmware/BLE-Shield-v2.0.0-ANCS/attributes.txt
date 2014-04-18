@@ -1,0 +1,1 @@
+xgatt_device_name 3
