@@ -5,8 +5,8 @@
 	<!-- disable USB on the Shield -->
 	<!--
     <usb enable="false" endpoint="none" />
-    -->
-	<usb enable="true" endpoint="script" />
+   	<usb enable="true" endpoint="script" />
+	-->
 	
     <sleeposc enable="false" ppm="30" />
 	<txpower power="15" bias="5" />

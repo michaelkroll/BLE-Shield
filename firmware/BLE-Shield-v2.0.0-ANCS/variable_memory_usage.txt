@@ -1,4 +1,4 @@
-203
+179
 0:0	GAP_AD_FLAG_BREDR_NOT_SUPPORTED
 0:0	GAP_AD_FLAG_GENERAL_DISCOVERABLE
 0:0	GAP_AD_FLAG_LIMITED_DISCOVERABLE
@@ -104,13 +104,12 @@
 91:4	atoi_buf_pos
 95:4	atoi_buf_len
 99:4	num
-103:30	adv_data
-133:21	custom_sr_data
-154:6	bdaddr
-160:6	shieldaddr
-166:4	connected
-170:4	encrypted
-174:20	in
-194:4	in_len
-198:1	emptyBuf
-199:4	res
+103:27	adv_data
+130:6	bdaddr
+136:6	shieldaddr
+142:4	connected
+146:4	encrypted
+150:20	in
+170:4	in_len
+174:1	emptyBuf
+175:4	res
