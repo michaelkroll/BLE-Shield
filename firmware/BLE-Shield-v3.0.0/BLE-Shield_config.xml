@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <config>
 	<throughput optimize="performance" />
+	<user_data size="0x20000" />
+    <!-- Increase script timeout from default to allow flash erase in loop -->
+    <script_timeout value="10000" />
 </config>

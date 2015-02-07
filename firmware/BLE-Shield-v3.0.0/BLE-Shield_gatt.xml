@@ -14,8 +14,8 @@
 	  <!-- Appearance -->
 	  <!-- org.bluetooth.characteristic.gap.appearance -->
       <characteristic uuid="2a01">
-        <properties read="true" const="true" />
         <!-- 128: Generic Computer, Generic category -->
+        <properties read="true" const="true" />
         <value type="hex">0080</value>
       </characteristic>
     </service>
@@ -35,7 +35,7 @@
 	  <!-- org.bluetooth.characteristic.model_number_string -->
 	  <characteristic uuid="2a24">
         <properties read="true" const="true" />
-        <value>BLE Shield 3.0.0</value>
+        <value>BLE-Shield 3.0.0</value>
 		<description>Model Number String</description>
       </characteristic>
 
@@ -51,38 +51,54 @@
 	  <!-- org.bluetooth.characteristic.hardware_revision_string -->
 	  <characteristic uuid="2a27">
         <properties read="true" const="true" />
-        <value>REV-A1</value>
+        <value>3.0.0 REV-C1</value>
 		<description>Hardware Revision String</description>
       </characteristic>   
     </service>
 	
-    <service uuid="B8E06067-62AD-41BA-9231-206AE80AB550" advertise="true">
-        <description>BLE Shield Service v3.0.0</description>
-       
-	   <characteristic uuid="65C228DA-BAD1-4F41-B55F-3D177F4E2196" id="xgatt_bdaddr">
+	               
+	<service uuid="B4BDB998-8F4A-45F6-A407-6B48D79CFC2F" advertise="true">
+       <description>BLE-Shield Service v3.0.0</description>
+							 	
+	   <characteristic uuid="B4BDB998-8F4B-45F6-A407-6B48D79CFC2F" id="xgatt_bdaddr">
             <properties read="true" />
             <value type="hex">001122334455</value>
 			<description>BD-Addr</description>
         </characteristic>
 		
-		<characteristic uuid="F897177B-AEE8-4767-8ECC-CC694FD5FCEE" id="xgatt_rx">
-            <properties read="true" notify="true"/>
-			<value length="20" variable_length="true" type="hex" />
-			<description>RX</description>
+		<characteristic uuid="B4BDB998-8F4C-45F6-A407-6B48D79CFC2F" id="xgatt_baudrate">
+            <properties read="true" write="true"/>
+            <value type="hex">00</value>
+			<description>Baudrate</description>
         </characteristic>
 		
-		<characteristic uuid="BF45E40A-DE2A-4BC8-BBA0-E5D6065F1B4B" id="xgatt_tx">
-            <properties read="true" write="true" write_no_response="true"/>
-			<value length="20" variable_length="true" type="hex" />
-			<description>TX</description>
-        </characteristic>
-        
-		<characteristic uuid="2FBC0F31-726A-4014-B9FE-C8BE0652E982" id="xgatt_baudrate">
+		<characteristic uuid="B4BDB998-8F4D-45F6-A407-6B48D79CFC2F" id="xgatt_con_led">
             <properties read="true" write="true"/>
-            <value length="1" type="hex">0</value>
-			<description>Baudrate</description>
-        </characteristic>	
-                			
+            <value type="hex">0</value>
+			<description>Enable Connect LED</description>
+        </characteristic>
+		
+		<characteristic uuid="B4BDB998-8F4E-45F6-A407-6B48D79CFC2F" id="xgatt_data">
+            <description>Data</description>
+            <properties write="true" indicate="true" />
+            <value variable_length="true" length="20" type="user" />
+        </characteristic>
+		
     </service>
+
+		<service uuid="1d14d6ee-fd63-4fa1-bfa4-8f47b42119f0">
+	    <description>Bluegiga OTA</description>
+		
+		<characteristic uuid="f7bf3564-fb6d-4e53-88a4-5e37e0326063" id="ota_control">
+		    <properties write="true" />
+			<value length="1" type="user" />
+		</characteristic>
+		
+		<characteristic uuid="984227f3-34fc-4045-a5d0-2c581f81a153" id="ota_data">
+		    <properties write_no_response="true" />
+			<value length="20" />
+		</characteristic>
+	
+	</service>
 
 </configuration>

@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <project>
     <gatt in="BLE-Shield_gatt.xml" />
-    <hardware in="BLE-Shield_hardware.xml" />    
-    <config in="BLE-Shield_config.xml" />  
-    <device type="ble113-m256k" />
+    <hardware in="BLE-Shield_hardware.xml" />
+    <config in="BLE-Shield_config.xml" />     
     <script in="BLE-Shield.bgs" />
-    <image out="BLE-Shield-firmware-3.0.0-BLE-SDK1.3.1-b119.hex" />    
+    <image out="BLEShield-Firmware-BLE113-3.0.0-BLE-SDK1.3.2-b122.hex" />   
+	<device type="ble113-m256k" />	
+	
+	<boot fw="bootota" />
+	<ota out="BLE-Shield-Firmware-BLE113-3.0.0-BLE-SDK1.3.2-b122.ota" />
 </project>

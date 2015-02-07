@@ -1,35 +1,72 @@
-# BLE-Shield v2.0.0 firmware
-# using BLE112 SDK v1.2.2 build100
-# (c) by Dr. Michael Kroll 2013 - 2014
+# BLE-Shield v3.0.0 firmware
+# using BLE113 m256k SDK v1.3.2 build122
+# (c) by Dr. Michael Kroll 2014-2015
 #
 # http://www.mkroll.mobi
 # http://forum.mkroll.mobi
+
+# See https://bluegiga.zendesk.com/entries/23109941--BGScript-baud-change-Modify-UART-baud-rate-at-runtime
+# for details on how to change the baudrate at runtime.
 
 # used for the BD Addr characteristic
 dim bdaddr(6)
 dim shieldaddr(6)
 
 # used for the Device name characteristic
-dim devicename(19)
+dim devicename(15)
 
 # endpoint data in used for the watermarks
-dim in(20) 
+dim in(20) # endpoint data in
 dim in_len
 dim result
-dim emptyBuf(1)
+
+dim out(20) # endpoint data out
+dim out_len
+
+#variable that holds the status of the connection led
+dim len_conn_led_enabled
+dim conn_led_enabled(1)
 
 #variable that holds the baudrate setting
 dim len_baudrate
 dim baudrate(1)
 
+# used for the Channel characteristics
+dim val
+dim emptyBuf(1)
+
 # set to 1 if device is connected
 dim connected
 
+dim command
+dim tmp(20)
+dim data_len
+dim curr_connection
+dim dfu_pointer  # current pointer to flash location to upload firmware
+dim erase_page   # current page to erase
+const max_erase_page = 64
+
 event system_boot(major, minor, patch, build, ll_version, protocol, hw)	
 	
+	# Erase internal flash dedicated for OTA
+    # For this to work, the script timeout has to be increased from the default
+    # value in application configuration file (config.xml)
+    erase_page = 0
+    while erase_page < max_erase_page
+        call flash_erase_page(erase_page)
+        erase_page = erase_page + 1
+    end while
+
+    # Initialize the DFU pointer
+    dfu_pointer = 0	
+	
+	# Load the status of the connection led flag from storage
+	call flash_ps_load($8000)(result, len_conn_led_enabled, conn_led_enabled(0:1))
+	call attributes_write(xgatt_con_led, 0, 1, conn_led_enabled(0:1))
+		
 	# Load the status from the baudrate flag from storage
-	call flash_ps_load($8000)(result, len_baudrate, baudrate(0:1))
-	call attributes_write(xgatt_baudrate, 0, 1, baudrate(0:1))			
+	call flash_ps_load($8001)(result, len_baudrate, baudrate(0:1))
+	call attributes_write(xgatt_baudrate, 0, 1, baudrate(0:1))		
 	
 	# diable the watermarks
 	call system_endpoint_set_watermarks(system_endpoint_uart1, 0, 0) # disable watermarks
@@ -71,10 +108,7 @@ event system_boot(major, minor, patch, build, ll_version, protocol, hw)
 	
 	#write the bd address characteristic
 	call attributes_write(xgatt_bdaddr, 0, 6, shieldaddr(0:6))
-	
-	# set port 1 to output
-	call hardware_io_port_config_direction(0, $f)
-	
+		
 	# set port 0 pin P0_0 to "0" which is used for the blue Connection LED
 	call hardware_io_port_write(0, $1, $0)
 	
@@ -118,15 +152,30 @@ event system_boot(major, minor, patch, build, ll_version, protocol, hw)
         call system_reg_write($70fc, 10)    # exponent, BAUD_E 
 	end if	
 	
+	# 57600 baud
+	if baudrate(0:1)=$05
+        call system_reg_write($70fa, 216)    # mantissa, BAUD_M
+        call system_reg_write($70fc, 10)    # exponent, BAUD_E 
+	end if
+	
+	# 115200 baud
+	if baudrate(0:1)=$06
+        call system_reg_write($70fa, 216)    # mantissa, BAUD_M
+        call system_reg_write($70fc, 11)    # exponent, BAUD_E 
+	end if
+	
 	#set the flag to 0, since there is no connection after boot
 	connected = 0
 end
 
-event connection_disconnected(connection ,reason)
+event connection_disconnected(connection ,reason)	
 
-	#set the flag to 0, since the connection was terminated.
+    #set the flag to 0, since the connection was terminated.
 	connected = 0
-	
+
+	# load the state of the enable connection led flag from store
+	call flash_ps_load($8000)(result, len_conn_led_enabled, conn_led_enabled(0:1))
+
     #connection disconnected, continue advertising
     call gap_set_mode(gap_general_discoverable,gap_undirected_connectable)
 	
@@ -137,89 +186,181 @@ event connection_disconnected(connection ,reason)
 	call hardware_io_port_write(0, $2, $0)
 	
 	# disable watermarks
-	call system_endpoint_set_watermarks(system_endpoint_uart1, 0, 0) 
-
-	#clear the data in the GATT 
-	emptyBuf(0:1) = $0
-	call attributes_write(xgatt_rx, 0, 0, emptyBuf(0:0))	
+	call system_endpoint_set_watermarks(system_endpoint_uart1, 0, 0) 		
 end
 
 event attributes_value(connection, reason, handle, offset, value_len, value_data)
+  
+      # Save connection handle, is always 0 if only slave
+    curr_connection = connection
+
+    # Check if OTA control point attribute is written by the remote device and execute the command
+        # Command 0 : Erase flash block 0 (0x0-0x1FFFF)
+        # Command 1 : Erase flash block 1 (0x10000-0x3FFFF)
+        # Command 2 : Reset DFU data pointer
+        # Command 3 : Boot to DFU mode
+        # Command 4 : Power up external flash
+    # In case of errors application error code 0x80 is returned to the remote device
+    # In case the flash comms fails error code 0x90 is returned to the remote device
+    if handle = ota_control then
+        # Attribute is user attribute, reason is always write_request_user
+        if value_len > 1 || offset > 0 then
+            # Not a valid command -> report application error code : 0x80
+            call attributes_user_write_response(connection, $80)
+        else
+            command = value_data(0:1)
+
+            if command > 4 then # Unknown command -> report application error code : 0x80
+                call attributes_user_write_response(curr_connection, $80)
+            else
+                if command = 3 then # Command 3 received -> Boot to DFU mode
+                    call system_reset(1)
+                else
+                    # Other commands are not used, but still accepted in order
+                    # to be compatible with the external flash OTA
+                    # implementation
+                    call attributes_user_write_response(curr_connection, $0)
+                end if
+            end if
+        end if
+    end if
+
+    # Check if OTA data attribute is written which carries the firmware update
+    # and store the data to the internal flash
+    if handle = ota_data then
+        call flash_write_data(dfu_pointer, value_len, value_data(0:value_len))
+        dfu_pointer = dfu_pointer + value_len
+    end if
+  
+  # Characteristic Enabled Connection Led has been written
+  if handle=xgatt_con_led
+    if value_data(0:1)=$00
+	  call flash_ps_save($8000, value_len, value_data(0:1))
+	end if
+	
+	if value_data(0:1)=$ff
+	  call flash_ps_save($8000, value_len, value_data(0:1))
+	end if
+  end if
   
   # Characteristic Baudrate has been written
   if handle=xgatt_baudrate
 	# 9600 baud
 	if value_data(0:1)=$00
-		call flash_ps_save($8000, value_len, value_data(0:1))		
+		call flash_ps_save($8001, value_len, value_data(0:1))		
 		call system_reg_write($70fa, 59)    # mantissa, BAUD_M
         call system_reg_write($70fc, 8)     # exponent, BAUD_E 
 	end if
 	
 	# 14400 baud
 	if value_data(0:1)=$01
-	  call flash_ps_save($8000, value_len, value_data(0:1)) 
+	  call flash_ps_save($8001, value_len, value_data(0:1)) 
 	  call system_reg_write($70fa, 216)   # mantissa, BAUD_M
       call system_reg_write($70fc, 8)     # exponent, BAUD_E 
 	end if
 	
 	# 19200 baud
 	if value_data(0:1)=$02
-	  call flash_ps_save($8000, 1, value_data(0:1))	  
+	  call flash_ps_save($8001, value_len, value_data(0:1))	  
       call system_reg_write($70fa, 59)    # mantissa, BAUD_M
       call system_reg_write($70fc, 9)     # exponent, BAUD_E 
 	end if	
 
 	# 28800 baud
 	if value_data(0:1)=$03
-	  call flash_ps_save($8000, 1, value_data(0:1))
+	  call flash_ps_save($8001, value_len, value_data(0:1))
   	  call system_reg_write($70fa, 216)   # mantissa, BAUD_M
       call system_reg_write($70fc, 9)     # exponent, BAUD_E 
 	end if	
 
 	# 38400 baud
-	if value_data(0:1)=$04
-		call flash_ps_save($8000, 1, value_data(0:1))
+	if value_data(0:1) = $04
+		call flash_ps_save($8001, value_len, value_data(0:1))
 		call system_reg_write($70fa, 59)    # mantissa, BAUD_M
         call system_reg_write($70fc, 10)    # exponent, BAUD_E 	
 	end if	
 	
+	# 57600 baud
+	if value_data(0:1) = $05
+	    call flash_ps_save($8001, value_len, value_data(0:1))	
+		call system_reg_write($70fa, 216)    # mantissa, BAUD_M
+        call system_reg_write($70fc, 10)    # exponent, BAUD_E 
+	end if
+	
+	# 115200 baud
+	if value_data(0:1) = $06
+        call flash_ps_save($8001, value_len, value_data(0:1))
+		call system_reg_write($70fa, 216)    # mantissa, BAUD_M
+        call system_reg_write($70fc, 11)    # exponent, BAUD_E 
+	end if	
+	
 	# Load the status from the baudrate flag from storage
-	call flash_ps_load($8000)(result, len_baudrate, baudrate(0:1))
+	call flash_ps_load($8001)(result, len_baudrate, baudrate(0:1))
 	call attributes_write(xgatt_baudrate, 0, 1, baudrate(0:1))			
-  end if  
-  
-  if handle=xgatt_tx then 
-    call system_endpoint_tx(system_endpoint_uart1, value_len, value_data(0:value_len))
   end if
   
+  # Characteristic DATA has been written
+  if handle = xgatt_data then
+        out(0:value_len) = value_data(0:value_len)
+        out_len = value_len
+        call system_endpoint_set_watermarks(system_endpoint_uart1, $ff, out_len) # set TX watermark
+    end if
 end
 
 event system_endpoint_watermark_rx(endpoint, size)
     if endpoint = system_endpoint_uart1 then
-      in_len = size
-      if in_len > 20 then
-        in_len = 20
-      end if
-	      
-      # disable RX watermark (recommended in 'cable replacement' application note from bluegiga	
-	  call system_endpoint_set_watermarks(system_endpoint_uart1, 0, $ff) 
-	  #read from UART
-      call system_endpoint_rx(system_endpoint_uart1, in_len)(result, in_len, in(0:in_len)) 
-	  #send over BLE
-	  call attributes_write(xgatt_rx, 0, in_len, in(0:in_len)) 
-	  # set RX watermark (1 byte treshhold)
-	  call system_endpoint_set_watermarks(system_endpoint_uart1, 1, $ff) 
-	
-	end if
+        in_len = size
+        if in_len > 20 then
+            in_len = 20
+        end if
+
+        call system_endpoint_set_watermarks(system_endpoint_uart1, 0, $ff) # disable RX watermark
+        call system_endpoint_rx(system_endpoint_uart1, in_len)(result, in_len, in(0:in_len))
+        call attributes_write(xgatt_data, 0, in_len, in(0:in_len))
+    end if
+end
+
+event system_endpoint_watermark_tx(endpoint, size)
+    if endpoint = system_endpoint_uart1 then
+        call system_endpoint_set_watermarks(system_endpoint_uart1, $ff, 0) # disable TX watermark
+        call system_endpoint_tx(system_endpoint_uart1, out_len, out(0:out_len))
+        call attributes_user_write_response(0, 0) # respond to connection handle 0 (only single connection supported)
+        out_len = 0
+    end if
+end
+
+event attributes_status(handle, flags)
+    if handle = xgatt_data then
+        if flags & 2 then
+            call system_endpoint_set_watermarks(system_endpoint_uart1, 1, $ff) # set RX watermark
+            # TODO: Resend endpoint data in when indications are enabled
+        else
+            call system_endpoint_set_watermarks(system_endpoint_uart1, 0, $ff) # disable RX watermark
+        end if
+    end if
+end
+
+event attclient_indicated(connection, attrhandle)
+    if attrhandle = xgatt_data then
+        call system_endpoint_set_watermarks(system_endpoint_uart1, 1, $ff) # set RX watermark
+        in_len = 0
+    end if
 end
 
 event connection_status(connection, flags, address, address_type, conn_interval, timeout, latency, bonding)
 	if connected = 0 then
-
-		# set port 0 pin P0_0 to "1" 
-		call hardware_io_port_write(0,$1,$1)
 	
-		# set port 0 pin P0_1 to "1" 
+		# set port 0 to output
+ 	    call hardware_io_port_config_direction(0, $f)
+	
+		# set port 0 pin P0_0 to "1" 
+		# turn the ble LED on
+		if conn_led_enabled(0:1)=$ff
+		  call hardware_io_port_write(0,$1,$1)
+		end if
+	
+		# set port 0 pin P0_1 to "1"
+		# set the pin ASSOC high to indicate a connection.	
 		call hardware_io_port_write(0,$2,$2)
 	
 		#clear the UART buffer
@@ -236,13 +377,9 @@ event connection_status(connection, flags, address, address_type, conn_interval,
 		call system_endpoint_rx(system_endpoint_uart1, in_len)(result, in_len, in(0:in_len)) #read from UART
 		call system_endpoint_rx(system_endpoint_uart1, in_len)(result, in_len, in(0:in_len)) #read from UART
 		
-		#clear the data in the GATT 
-		emptyBuf(0:1) = $0
-		call attributes_write(xgatt_rx, 0, 0, emptyBuf(0:0))
-	
 		#enable the watermarks for RX here
-		call system_endpoint_set_watermarks(system_endpoint_uart1, 1, $ff) # set RX watermark
-
+		call system_endpoint_set_watermarks(system_endpoint_uart1, 1, $ff) 
 	end if
-	connected = 1	
+	
+	connected = 1		
 end

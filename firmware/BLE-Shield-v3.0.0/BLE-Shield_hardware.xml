@@ -9,10 +9,11 @@
 	<txpower power="15" bias="5" />
 	
 	<usart channel="1" alternate="1" baud="9600" endpoint="none" flow="false" />
-	
 	<script enable="true" />
+	
 	<port index="0" pull="down" />
-	<port index="1" pull="down" /> 
-	<port index="2" pull="down" />
+	<port index="1" pull="down" /> 	
+	
+	<otaboot source="internal" />
 	
 </hardware>

@@ -1,4 +1,4 @@
-69
+138
 0:0	GAP_AD_FLAG_BREDR_NOT_SUPPORTED
 0:0	GAP_AD_FLAG_GENERAL_DISCOVERABLE
 0:0	GAP_AD_FLAG_LIMITED_DISCOVERABLE
@@ -58,6 +58,8 @@
 0:0	gap_scannable_non_connectable
 0:0	gap_undirected_connectable
 0:0	gap_user_data
+0:0	ota_control
+0:0	ota_data
 0:0	sm_bonding_key_addr_public
 0:0	sm_bonding_key_addr_static
 0:0	sm_bonding_key_csrk
@@ -78,16 +80,28 @@
 0:0	system_endpoint_usb
 0:0	xgatt_baudrate
 0:0	xgatt_bdaddr
+0:0	xgatt_con_led
+0:0	xgatt_data
 0:0	xgatt_device_name
-0:0	xgatt_rx
-0:0	xgatt_tx
 0:6	bdaddr
 6:6	shieldaddr
-12:19	devicename
-31:20	in
-51:4	in_len
-55:4	result
-59:1	emptyBuf
-60:4	len_baudrate
-64:1	baudrate
-65:4	connected
+12:15	devicename
+27:20	in
+47:4	in_len
+51:4	result
+55:20	out
+75:4	out_len
+79:4	len_conn_led_enabled
+83:1	conn_led_enabled
+84:4	len_baudrate
+88:1	baudrate
+89:4	val
+93:1	emptyBuf
+94:4	connected
+98:4	command
+102:20	tmp
+122:4	data_len
+126:4	curr_connection
+130:4	dfu_pointer
+134:4	erase_page
+138:0	max_erase_page
