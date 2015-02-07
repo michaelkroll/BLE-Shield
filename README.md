@@ -27,6 +27,61 @@ The Latest version of the BLE-Shield is v3.0.0 as illustrated in the image below
 
 [![](https://raw.github.com/michaelkroll/BLE-Shield/master/docs/BLE-Shieldv3C1.jpg)](https://raw.github.com/michaelkroll/BLE-Shield/master/docs/BLE-Shieldv3C1.jpg)
 
+#### Services and Characteristics of the BLE-Shield v3.0.0
+
+The new BLE-Shield supports some new services and haracteristics. The RX and TX characteristics are not combined into one indicating Data characteristic
+Moreover the Bluegiga OTA Service is supported enabling you to update the BLE-Shield over the air using e.g. the iOS App BLExplr.
+
+##### BLE-Shield Service v3.0.0 (B4BDB998-8F4A-45F6-A407-6B48D79CFC2F)
+
+###### Bluetooth Device Address Characteristic (B4BDB998-8F4B-45F6-A407-6B48D79CFC2F)
+
+This characteristic is read only and used to retrieve the Bluetooth Device Address of the BLE113-M256k module.
+
+###### Baudrate Characteristic (B4BDB998-8F4C-45F6-A407-6B48D79CFC2F)
+
+This characteristic is read and write and used to set the BLE-Shields baudrate. The default baudrate is 9600 baud
+It is a one byte characteristic. The following baudrates are suported and can be set using the following byte set to the
+characteristic:
+
+Baudrate  | Configuration Byte
+--------- | ------------------
+9600      | 0x00
+14400     | 0x01
+19200     | 0x02
+28800     | 0x03
+38400     | 0x04
+57600     | 0x05
+115200    | 0x06
+
+###### Enable Connect LED characteristic (B4BDB998-8F4D-45F6-A407-6B48D79CFC2F)
+
+This characteristic is used to control the connection LED on the BLE-Shield. The LED is per default off.
+In order to change it's behavior write e.g. 0xff the the characteristic to make it lit on the next connection.
+
+LED State | Configuration Byte
+--------- | ------------------
+OFF       | 0x00
+ON        | 0xff
+
+###### Data characteristic (B4BDB998-8F4E-45F6-A407-6B48D79CFC2F)
+
+The new BLE-Shield v3.0.0 uses a Data characteristic to send and receive data. In order to support this
+the characteristic is a write and indicate characteristic. On BLExplr it is no longer necessary to switch between
+RX and TX characteristics. You can stay on the same screen to see data which is recevied while you are transmitting data.
+
+##### Bluegiga OTA Service (1d14d6ee-fd63-4fa1-bfa4-8f47b42119f0)
+
+This is the implementation of Bluegiga's OTA Service to update the firmware over the air.
+
+###### Data characteristic (f7bf3564-fb6d-4e53-88a4-5e37e0326063)
+
+Bluegiga OTA Control Characteristic
+
+###### Data characteristic (984227f3-34fc-4045-a5d0-2c581f81a153)
+
+Bluegiga OTA Data Characteristic
+
 ### Links
 * http://www.mkroll.mobi
 * http://forum.mkroll.mobi
