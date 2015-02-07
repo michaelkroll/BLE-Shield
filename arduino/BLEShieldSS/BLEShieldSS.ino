@@ -31,6 +31,10 @@ long interval = 1000;
 
 void setup()  
 {
+  // Setup the RX/TX pins so the SoftwareSerial will send and receive
+  pinMode(2,INPUT);
+  pinMode(3,OUTPUT);
+
   // set the data rate for the SoftwareSerial port
   bleShield.begin(19200);
   Serial.begin(19200);
